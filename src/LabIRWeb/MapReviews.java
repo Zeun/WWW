@@ -81,19 +81,19 @@ public class MapReviews {
             a = sc.nextLine();
 
             if (map.containsKey(pid)) { //acá debo cambiar la forma en que se unen
-                String summ_tmp = map.get(pid).reviews.get(0).summary + "*^*" + summ;
-                String text_tmp = map.get(pid).reviews.get(0).text + "*^*" + text;
-                String score_tmp = map.get(pid).reviews.get(0).score + "*^*" + score;
-                String positive_tmp = map.get(pid).reviews.get(0).positiveVotes +  "*^*" + hness.split("/")[0];
-                String total_tmp = map.get(pid).reviews.get(0).totalVotes + "*^*" + hness.split("/")[1];
+                int cantidadReviews_tmp = map.get(pid).cantidadReviews + 1;
+                String summ_tmp = map.get(pid).review_summ + "*^*" + summ;
+                String text_tmp = map.get(pid).review_text + "*^*" + text;
+                String score_tmp = map.get(pid).review_score + "*^*" + score;
+                String positive_tmp = map.get(pid).review_positiveVotes +  "*^*" + hness.split("/")[0];
+                String total_tmp = map.get(pid).review_totalVotes + "*^*" + hness.split("/")[1];
                 String hness_tmp = positive_tmp + "/" + total_tmp;
-                Review newReview = new Review(summ_tmp, text_tmp, score_tmp, hness_tmp);
-                map.get(pid).deleteReview();
-                map.get(pid).addReview(newReview);
-
+                map.remove(pid);
+                Product p = new Product(title, price, summ_tmp, text_tmp, score_tmp, hness_tmp, cantidadReviews_tmp);
+                map.put(pid, p);
+                
             } else { //no existe el producto en el diccionario
-                Review firstReview = new Review(summ, text, score, hness);
-                Product p = new Product(title, price, firstReview);
+                Product p = new Product(title, price, summ, text, score, hness, 0);
                 map.put(pid, p);
 
             }
@@ -268,6 +268,12 @@ public class MapReviews {
                 d.add(new StringField("price", map.get(idProductoComent).price, Field.Store.YES));
 
                 //agregamos las reviews
+                d.add(new TextField("summary", map.get(idProductoComent).review_summ, Field.Store.YES));
+                d.add(new TextField("text", map.get(idProductoComent).review_text, Field.Store.YES));
+                d.add(new TextField("score", map.get(idProductoComent).review_score, Field.Store.YES));
+                d.add(new TextField("positive", map.get(idProductoComent).review_positiveVotes, Field.Store.YES));
+                d.add(new TextField("total", map.get(idProductoComent).review_totalVotes, Field.Store.YES));
+                /*
                 int cantidadDeReviews = 0;
                 for (Review r : map.get(idProductoComent).reviews) {
                     d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_summary", r.summary, Field.Store.YES));
@@ -279,7 +285,7 @@ public class MapReviews {
                     cantidadDeReviews = cantidadDeReviews + 1;
                 }
                 d.add(new IntField("qtyOfReviews", cantidadDeReviews, Field.Store.YES));
-
+                */
             //acá se define el umbral de similitud entre el nombre del producto de cada base de datos
             if (mayorSimilitud >= 0.65) {
                 System.out.println(String.format("Encontré similitud entre: %s y %s, con un valor de %f", titulo, tituloCandidato, mayorSimilitud));
