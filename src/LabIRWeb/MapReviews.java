@@ -80,8 +80,15 @@ public class MapReviews {
             String text = a;
             a = sc.nextLine();
 
-            if (map.containsKey(pid)) {
-                Review newReview = new Review(summ, text, score, hness);
+            if (map.containsKey(pid)) { //acá debo cambiar la forma en que se unen
+                String summ_tmp = map.get(pid).reviews.get(0).summary + "*^*" + summ;
+                String text_tmp = map.get(pid).reviews.get(0).text + "*^*" + text;
+                String score_tmp = map.get(pid).reviews.get(0).score + "*^*" + score;
+                String positive_tmp = map.get(pid).reviews.get(0).positiveVotes +  "*^*" + hness.split("/")[0];
+                String total_tmp = map.get(pid).reviews.get(0).totalVotes + "*^*" + hness.split("/")[1];
+                String hness_tmp = positive_tmp + "/" + total_tmp;
+                Review newReview = new Review(summ_tmp, text_tmp, score_tmp, hness_tmp);
+                map.get(pid).deleteReview();
                 map.get(pid).addReview(newReview);
 
             } else { //no existe el producto en el diccionario
@@ -223,7 +230,7 @@ public class MapReviews {
         analyzerPerField.put("GmWt_Desc2", new KeywordAnalyzer());
         analyzerPerField.put("Refuse_Pct", new KeywordAnalyzer());
 
-// create a per-field analyzer wrapper using the StandardAnalyzer as .. standard analyzer ;)
+        // create a per-field analyzer wrapper using the StandardAnalyzer as .. standard analyzer ;)
         PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new StopAnalyzer(), analyzerPerField);
 
         //Analyzer analyzer = new StandardAnalyzer();
@@ -265,9 +272,9 @@ public class MapReviews {
                 for (Review r : map.get(idProductoComent).reviews) {
                     d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_summary", r.summary, Field.Store.YES));
                     d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_title", r.text, Field.Store.YES));
-                    d.add(new IntField("review_" + String.valueOf(cantidadDeReviews) + "_score", r.score, Field.Store.YES));
-                    d.add(new IntField("review_" + String.valueOf(cantidadDeReviews) + "_positiveVotes", r.positiveVotes, Field.Store.YES));
-                    d.add(new IntField("review_" + String.valueOf(cantidadDeReviews) + "_totalVotes", r.totalVotes, Field.Store.YES));
+                    d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_score", r.score, Field.Store.YES));
+                    d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_positiveVotes", r.positiveVotes, Field.Store.YES));
+                    d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_totalVotes", r.totalVotes, Field.Store.YES));
                     //considerar agregar el cociente entre positiveVotes y totalVotes para ordenar por helpfulness si es necesario
                     cantidadDeReviews = cantidadDeReviews + 1;
                 }

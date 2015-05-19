@@ -17,6 +17,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -67,9 +68,15 @@ public class Search {
         // 2. Query
         String querystr = busqueda;
 
-        Query q = new QueryParser("amazonTitle", analyzer).parse(querystr);
+//        Query q = new QueryParser("amazonTitle", analyzer).parse(querystr);
         //Query qNONES = new QueryParser(Version.LUCENE_43, "contenido", analyzer).parse(querystr);
 
+        
+        String[] fields = {"amazonTitle","text","summary"};
+        //QueryParser parser = new QueryParser(field, analyzerWrapper);
+        Query q = new MultiFieldQueryParser(fields , analyzer).parse(querystr);
+        
+        
         // 3. Search
         int hitsPerPage = 2048;
         IndexReader reader = DirectoryReader.open(indexES);

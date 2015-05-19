@@ -31,4 +31,11 @@ public class Product {
         l.add(a);
         reviews = l;
     }
+    
+    public void deleteReview(){
+        List l = reviews;
+        l.clear();
+        reviews = l;
+    }
+    
 }

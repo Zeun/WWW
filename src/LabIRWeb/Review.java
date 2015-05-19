@@ -12,15 +12,15 @@ package LabIRWeb;
 public class Review {
     public String summary;
     public String text;
-    public int score;
-    public int positiveVotes;
-    public int totalVotes;
+    public String score;
+    public String positiveVotes;
+    public String totalVotes;
     
     public Review(String a, String b, String c, String d){
         summary = a;
         text = b;
-        score = Integer.parseInt(c.substring(0, 1));
-        positiveVotes = Integer.parseInt(d.split("/")[0]);
-        totalVotes = Integer.parseInt(d.split("/")[1]);
+        score = c.substring(0, 1);
+        positiveVotes = d.split("/")[0];
+        totalVotes = d.split("/")[1];
     }
 }
