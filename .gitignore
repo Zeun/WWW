@@ -17,3 +17,13 @@ dataSR27/*
 sr27.csv
 Gourmet_Foods.txt
 trainingData.txt
+
+*.gz
+
+*.gz
+
+*.prop
+
+*.xml
+
+*.properties
