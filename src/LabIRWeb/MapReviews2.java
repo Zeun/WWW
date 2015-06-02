@@ -85,20 +85,22 @@ public class MapReviews2 {
             a = sc.nextLine();
 
             if (map.containsKey(pid)) { //acá debo cambiar la forma en que se unen
-                String summ_tmp = map.get(pid).reviews.get(0).summary + "*^*" + summ;
-                String text_tmp = map.get(pid).reviews.get(0).text + "*^*" + text;
-                String score_tmp = map.get(pid).reviews.get(0).score + "*^*" + score;
-                String positive_tmp = map.get(pid).reviews.get(0).positiveVotes + "*^*" + hness.split("/")[0];
-                String total_tmp = map.get(pid).reviews.get(0).totalVotes + "*^*" + hness.split("/")[1];
+
+                int cantidadReviews_tmp = map.get(pid).cantidadReviews + 1;
+                String summ_tmp = map.get(pid).review_summ + "*^*" + summ;
+                String text_tmp = map.get(pid).review_text + "*^*" + text;
+                String score_tmp = map.get(pid).review_score + "*^*" + score;
+                String positive_tmp = map.get(pid).review_positiveVotes + "*^*" + hness.split("/")[0];
+                String total_tmp = map.get(pid).review_totalVotes + "*^*" + hness.split("/")[1];
+
                 String hness_tmp = positive_tmp + "/" + total_tmp;
-                Review newReview = new Review(summ_tmp, text_tmp, score_tmp, hness_tmp);
-                map.get(pid).deleteReview();
-                map.get(pid).addReview(newReview);
+                map.remove(pid);
+                Product p = new Product(title, price, summ_tmp, text_tmp, score_tmp, hness_tmp, cantidadReviews_tmp);
+                map.put(pid, p);
 
             } else { //no existe el producto en el diccionario
                 if (!title.isEmpty()) {
-                    Review firstReview = new Review(summ, text, score, hness);
-                    Product p = new Product(title, price, firstReview);
+                    Product p = new Product(title, price, summ, text, score, hness, 0);
                     map.put(pid, p);
                 }
             }
@@ -421,7 +423,7 @@ public class MapReviews2 {
             float percent = ((float) prodAnalizados) / prodAAnalizar;
             System.out.println(String.format("[%d] Analizando producto %d de %d (%.2f %%)", System.currentTimeMillis(), prodAnalizados++, prodAAnalizar, percent));
             String titulo = map.get(idProductoComent).title;
-            Document mejorMatch= s.buscarNutriInfos(QueryParserUtil.escape(titulo));
+            Document mejorMatch = s.buscarNutriInfos(QueryParserUtil.escape(titulo));
             //creamos el documento con los datos de amazon
             d = new Document();
             //TODO revisar el 
@@ -430,18 +432,12 @@ public class MapReviews2 {
             d.add(new StringField("price", map.get(idProductoComent).price, Field.Store.YES));
 
             //agregamos las reviews
-            int cantidadDeReviews = 0;
-            for (Review r : map.get(idProductoComent).reviews) {
-                d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_summary", r.summary, Field.Store.YES));
-                d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_title", r.text, Field.Store.YES));
-                d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_score", r.score, Field.Store.YES));
-                d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_positiveVotes", r.positiveVotes, Field.Store.YES));
-                d.add(new TextField("review_" + String.valueOf(cantidadDeReviews) + "_totalVotes", r.totalVotes, Field.Store.YES));
-                //considerar agregar el cociente entre positiveVotes y totalVotes para ordenar por helpfulness si es necesario
-                cantidadDeReviews = cantidadDeReviews + 1;
-            }
-            d.add(new IntField("qtyOfReviews", cantidadDeReviews, Field.Store.YES));
-
+           
+                d.add(new TextField("summary", map.get(idProductoComent).review_summ, Field.Store.YES));
+                d.add(new TextField("text", map.get(idProductoComent).review_text, Field.Store.YES));
+                d.add(new TextField("score", map.get(idProductoComent).review_score, Field.Store.YES));
+                d.add(new TextField("positive", map.get(idProductoComent).review_positiveVotes, Field.Store.YES));
+                d.add(new TextField("total", map.get(idProductoComent).review_totalVotes, Field.Store.YES));
             if (mejorMatch != null) {
                 for (IndexableField i : mejorMatch.getFields()) {
                     d.add(i);
