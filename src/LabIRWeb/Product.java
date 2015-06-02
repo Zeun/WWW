@@ -23,7 +23,6 @@ public class Product {
         List l = new ArrayList<Review>();
         l.add(c);
         reviews = l;
-
     }
     
     public void addReview(Review a){

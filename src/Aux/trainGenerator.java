@@ -102,7 +102,6 @@ public class trainGenerator {
                     continue iteracionPorReviews;
             }
             line = pid + time + " "+clase+" " + summ + " " + text + "\n";
-            System.out.print(line);
             out.write(line);
             itemsWritten++;
             currentReview++;

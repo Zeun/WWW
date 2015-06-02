@@ -9,12 +9,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.lucene.analysis.Analyzer;
@@ -30,6 +33,10 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.flexible.standard.QueryParserUtil;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
@@ -37,9 +44,9 @@ import org.apache.lucene.store.FSDirectory;
  *
  * @author felipe
  */
-public class MapReviews {
+public class MapReviews2 {
 
-    public static void main(String[] args) throws FileNotFoundException, IOException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException {
         File file = new File("Gourmet_Foods.txt");
         Scanner sc = new Scanner(file);
         HashMap<String, Product> map = new HashMap<>();
@@ -89,10 +96,11 @@ public class MapReviews {
                 map.get(pid).addReview(newReview);
 
             } else { //no existe el producto en el diccionario
-                Review firstReview = new Review(summ, text, score, hness);
-                Product p = new Product(title, price, firstReview);
-                map.put(pid, p);
-
+                if (!title.isEmpty()) {
+                    Review firstReview = new Review(summ, text, score, hness);
+                    Product p = new Product(title, price, firstReview);
+                    map.put(pid, p);
+                }
             }
             //System.out.println(p++);
             //System.out.println(pid + titulo + uid + pname + hness + score + summ + text);
@@ -167,9 +175,7 @@ public class MapReviews {
         System.out.println("Terminé de leer información nutricional!");
         System.out.println("Tenemos " + map2.size() + " tablas nutricionales registradas.");
 
-        //ahora buscamos productos similares y al detectar la similaridad,
-        //los agregamos al índice
-        // map field-name to analyzer
+        // hacer una bd de lucene con los cosos de map2
         Map<String, Analyzer> analyzerPerField = new HashMap<>();
         analyzerPerField.put("amazonProductId", new KeywordAnalyzer());
         analyzerPerField.put("price", new KeywordAnalyzer());
@@ -230,35 +236,192 @@ public class MapReviews {
         // create a per-field analyzer wrapper using the StandardAnalyzer as .. standard analyzer ;)
         PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new StopAnalyzer(), analyzerPerField);
 
-        //Analyzer analyzer = new StandardAnalyzer();
+        Path indexPathSR27 = Paths.get("dataSR27/");
+        Directory directorySR27 = FSDirectory.open(indexPathSR27);
+        IndexWriterConfig configSR27 = new IndexWriterConfig(analyzer);
+        IndexWriter iwriterSR27 = new IndexWriter(directorySR27, configSR27);
+        Document d;
+        for (String idProductoInfo : map2.keySet()) {
+            d = new Document();
+            NutriInfo n = map2.get(idProductoInfo);
+            d.add(new IntField("NDB_No", Integer.parseInt(n.NDB_No), Field.Store.YES));
+            d.add(new TextField("Shrt_Desc", n.Shrt_Desc, Field.Store.YES));
+            if (!"".equals(n.Water_g)) {
+                d.add(new FloatField("Water", Float.parseFloat(n.Water_g), Field.Store.YES));
+            }
+            if (!"".equals(n.Energ_Kcal)) {
+                d.add(new IntField("Energ_Kcal", Integer.parseInt(n.Energ_Kcal), Field.Store.YES));
+            }
+            if (!"".equals(n.Protein_g)) {
+                d.add(new FloatField("Protein", Float.parseFloat(n.Protein_g), Field.Store.YES));
+            }
+            if (!"".equals(n.Lipid_Tot_g)) {
+                d.add(new FloatField("Lipid_Tot", Float.parseFloat(n.Lipid_Tot_g), Field.Store.YES));
+            }
+            if (!"".equals(n.Ash_g)) {
+                d.add(new FloatField("Ash", Float.parseFloat(n.Ash_g), Field.Store.YES));
+            }
+            if (!"".equals(n.Carbohydrt_g)) {
+                d.add(new FloatField("Carbohydrt", Float.parseFloat(n.Carbohydrt_g), Field.Store.YES));
+            }
+            if (!"".equals(n.Fiber_TD_g)) {
+                d.add(new FloatField("Fiber_TD", Float.parseFloat(n.Fiber_TD_g), Field.Store.YES));
+            }
+            if (!"".equals(n.Sugar_Tot_g)) {
+                d.add(new FloatField("Sugar_Tot", Float.parseFloat(n.Sugar_Tot_g), Field.Store.YES));
+            }
+            if (!"".equals(n.Calcium_mg)) {
+                d.add(new IntField("Calcium", Integer.parseInt(n.Calcium_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Iron_mg)) {
+                d.add(new FloatField("Iron", Float.parseFloat(n.Iron_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Magnesium_mg)) {
+                d.add(new IntField("Magnesium", Integer.parseInt(n.Magnesium_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Phosphorus_mg)) {
+                d.add(new IntField("Phosphorus", Integer.parseInt(n.Phosphorus_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Potassium_mg)) {
+                d.add(new IntField("Potassium", Integer.parseInt(n.Potassium_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Sodium_mg)) {
+                try {
+                    d.add(new IntField("Sodium", Integer.parseInt(n.Potassium_mg), Field.Store.YES));
+                } catch (Exception e) {
+                    int i = 0;
+                }
+            }
+            if (!"".equals(n.Zinc_mg)) {
+                d.add(new FloatField("Zinc", Float.parseFloat(n.Zinc_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Copper_mg)) {
+                d.add(new FloatField("Copper", Float.parseFloat(n.Copper_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Manganese_mg)) {
+                d.add(new FloatField("Manganese", Float.parseFloat(n.Manganese_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Selenium_µg)) {
+                d.add(new FloatField("Selenium", Float.parseFloat(n.Selenium_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Vit_C_mg)) {
+                d.add(new FloatField("Vit_C", Float.parseFloat(n.Vit_C_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Thiamin_mg)) {
+                d.add(new FloatField("Thiamin", Float.parseFloat(n.Thiamin_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Riboflavin_mg)) {
+                d.add(new FloatField("Riboflavin", Float.parseFloat(n.Riboflavin_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Niacin_mg)) {
+                d.add(new FloatField("Niacin", Float.parseFloat(n.Niacin_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Panto_Acid_mg)) {
+                d.add(new FloatField("Panto_acid", Float.parseFloat(n.Panto_Acid_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Vit_B6_mg)) {
+                d.add(new FloatField("Vit_B6", Float.parseFloat(n.Vit_B6_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Folate_Tot_µg)) {
+                d.add(new IntField("Folate_Tot", Integer.parseInt(n.Folate_Tot_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Folic_Acid_µg)) {
+                d.add(new IntField("Folic_acid", Integer.parseInt(n.Folic_Acid_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Food_Folate_µg)) {
+                d.add(new IntField("Food_Folate", Integer.parseInt(n.Food_Folate_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Folate_DFE_µg)) {
+                d.add(new IntField("Folate_DFE", Integer.parseInt(n.Folate_DFE_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Choline_Tot_mg)) {
+                d.add(new FloatField("Choline_Tot", Float.parseFloat(n.Choline_Tot_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Vit_B12_µg)) {
+                d.add(new FloatField("Vit_B12", Float.parseFloat(n.Vit_B12_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Vit_A_IU)) {
+                d.add(new IntField("Vit_A_IU", Integer.parseInt(n.Vit_A_IU), Field.Store.YES));
+            }
+            if (!"".equals(n.Vit_A_RAE)) {
+                d.add(new IntField("Vit_A_RAE", Integer.parseInt(n.Vit_A_RAE), Field.Store.YES));
+            }
+            if (!"".equals(n.Retinol_µg)) {
+                d.add(new IntField("Retinol", Integer.parseInt(n.Retinol_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Alpha_Carot_µg)) {
+                d.add(new IntField("Alpha_Carot", Integer.parseInt(n.Alpha_Carot_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Beta_Carot_µg)) {
+                d.add(new IntField("Beta_Carot", Integer.parseInt(n.Beta_Carot_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Beta_Crypt_µg)) {
+                d.add(new IntField("Beta_Crypt", Integer.parseInt(n.Beta_Crypt_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Lycopene_µg)) {
+                d.add(new IntField("Lycopene", Integer.parseInt(n.Lycopene_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.LutZea_µg)) {
+                d.add(new IntField("Lut+Zea", Integer.parseInt(n.LutZea_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Vit_E_mg)) {
+                d.add(new FloatField("Vit_E", Float.parseFloat(n.Vit_E_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.Vit_D_µg)) {
+                d.add(new FloatField("Vit_D_mcg", Float.parseFloat(n.Vit_D_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.Vit_D_IU)) {
+                d.add(new IntField("Vit_D_IU", Integer.parseInt(n.Vit_D_IU), Field.Store.YES));
+            }
+            if (!"".equals(n.Vit_K_µg)) {
+                d.add(new FloatField("Vit_K", Float.parseFloat(n.Vit_K_µg), Field.Store.YES));
+            }
+            if (!"".equals(n.FA_Sat_g)) {
+                d.add(new FloatField("FA_Sat", Float.parseFloat(n.FA_Sat_g), Field.Store.YES));
+            }
+            if (!"".equals(n.FA_Mono_g)) {
+                d.add(new FloatField("FA_Mono", Float.parseFloat(n.FA_Mono_g), Field.Store.YES));
+            }
+            if (!"".equals(n.FA_Poly_g)) {
+                d.add(new FloatField("FA_Poly", Float.parseFloat(n.FA_Poly_g), Field.Store.YES));
+            }
+            if (!"".equals(n.Cholestrl_mg)) {
+                d.add(new IntField("Cholestrl", Integer.parseInt(n.Cholestrl_mg), Field.Store.YES));
+            }
+            if (!"".equals(n.GmWt_1)) {
+                d.add(new IntField("GmWt_1", Integer.parseInt(n.GmWt_1), Field.Store.YES));
+            }
+            if (!"".equals(n.GmWt_Desc1)) {
+                d.add(new StringField("GmWt_Desc1", n.GmWt_Desc1, Field.Store.YES));
+            }
+            if (!"".equals(n.GmWt_2)) {
+                d.add(new FloatField("GmWt_2", Float.parseFloat(n.GmWt_2), Field.Store.YES));
+            }
+            if (!"".equals(n.GmWt_Desc2)) {
+                d.add(new StringField("GmWt_Desc2", n.GmWt_Desc2, Field.Store.YES));
+            }
+            if (!"".equals(n.Refuse_Pct)) {
+                d.add(new IntField("Refuse_Pct", Integer.parseInt(n.Refuse_Pct), Field.Store.YES));
+            }
+            iwriterSR27.addDocument(d);
+        }
+        iwriterSR27.close();
+
         Path indexPath = Paths.get("data/");
         Directory directory = FSDirectory.open(indexPath);
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         IndexWriter iwriter = new IndexWriter(directory, config);
-        Document d;
+        //abro el motor de búsquedas
         int prodAnalizados = 1;
         int prodAAnalizar = map.size();
         int contadorDeSimilitudes = 0;
         System.out.println(String.format("Proceso iniciado, se hicieron %d matches de %d productos", contadorDeSimilitudes, prodAAnalizar));
+        Search s = new Search("dataSR27/", "dataSR27/");
         for (String idProductoComent : map.keySet()) {
             float percent = ((float) prodAnalizados) / prodAAnalizar;
             System.out.println(String.format("[%d] Analizando producto %d de %d (%.2f %%)", System.currentTimeMillis(), prodAnalizados++, prodAAnalizar, percent));
             String titulo = map.get(idProductoComent).title;
-            double mayorSimilitud = 0;
-            String tituloCandidato = "";
-            String idCandidato = null;
-            for (String idProductoInfo : map2.keySet()) {
-                String tituloInfo = map2.get(idProductoInfo).Shrt_Desc;
-                //esta función da un valor entre 0 y 1 respecto a la similaridad
-                //de los nombres
-                double similarity = StringSimilarity.similarity(titulo, tituloInfo);
-                if (similarity > mayorSimilitud) {
-                    mayorSimilitud = similarity;
-                    tituloCandidato = tituloInfo;
-                    idCandidato = idProductoInfo;
-                }
-            }
-
+            Document mejorMatch= s.buscarNutriInfos(QueryParserUtil.escape(titulo));
             //creamos el documento con los datos de amazon
             d = new Document();
             //TODO revisar el 
@@ -279,174 +442,12 @@ public class MapReviews {
             }
             d.add(new IntField("qtyOfReviews", cantidadDeReviews, Field.Store.YES));
 
-            //acá se define el umbral de similitud entre el nombre del producto de cada base de datos
-            if (mayorSimilitud >= 0.5) {
-                System.out.println(String.format("Encontré similitud entre: %s y %s, con un valor de %f", titulo, tituloCandidato, mayorSimilitud));
-                contadorDeSimilitudes++;
-                //agregación de datos de la tabla de nutrientes
-                if (idCandidato != null) {//si encontramos un candidato
-                    NutriInfo n = map2.get(idCandidato);
-                    d.add(new IntField("NDB_No", Integer.parseInt(n.NDB_No), Field.Store.YES));
-                    d.add(new TextField("Shrt_Desc", n.Shrt_Desc, Field.Store.YES));
-                    if (!"".equals(n.Water_g)) {
-                        d.add(new FloatField("Water", Float.parseFloat(n.Water_g), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Energ_Kcal)) {
-                        d.add(new IntField("Energ_Kcal", Integer.parseInt(n.Energ_Kcal), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Protein_g)) {
-                        d.add(new FloatField("Protein", Float.parseFloat(n.Protein_g), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Lipid_Tot_g)) {
-                        d.add(new FloatField("Lipid_Tot", Float.parseFloat(n.Lipid_Tot_g), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Ash_g)) {
-                        d.add(new FloatField("Ash", Float.parseFloat(n.Ash_g), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Carbohydrt_g)) {
-                        d.add(new FloatField("Carbohydrt", Float.parseFloat(n.Carbohydrt_g), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Fiber_TD_g)) {
-                        d.add(new FloatField("Fiber_TD", Float.parseFloat(n.Fiber_TD_g), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Sugar_Tot_g)) {
-                        d.add(new FloatField("Sugar_Tot", Float.parseFloat(n.Sugar_Tot_g), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Calcium_mg)) {
-                        d.add(new IntField("Calcium", Integer.parseInt(n.Calcium_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Iron_mg)) {
-                        d.add(new FloatField("Iron", Float.parseFloat(n.Iron_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Magnesium_mg)) {
-                        d.add(new IntField("Magnesium", Integer.parseInt(n.Magnesium_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Phosphorus_mg)) {
-                        d.add(new IntField("Phosphorus", Integer.parseInt(n.Phosphorus_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Potassium_mg)) {
-                        d.add(new IntField("Potassium", Integer.parseInt(n.Potassium_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Sodium_mg)) {
-                        try {
-                            d.add(new IntField("Sodium", Integer.parseInt(n.Potassium_mg), Field.Store.YES));
-                        } catch (Exception e) {
-                            int i = 0;
-                        }
-                    }
-                    if (!"".equals(n.Zinc_mg)) {
-                        d.add(new FloatField("Zinc", Float.parseFloat(n.Zinc_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Copper_mg)) {
-                        d.add(new FloatField("Copper", Float.parseFloat(n.Copper_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Manganese_mg)) {
-                        d.add(new FloatField("Manganese", Float.parseFloat(n.Manganese_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Selenium_µg)) {
-                        d.add(new FloatField("Selenium", Float.parseFloat(n.Selenium_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Vit_C_mg)) {
-                        d.add(new FloatField("Vit_C", Float.parseFloat(n.Vit_C_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Thiamin_mg)) {
-                        d.add(new FloatField("Thiamin", Float.parseFloat(n.Thiamin_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Riboflavin_mg)) {
-                        d.add(new FloatField("Riboflavin", Float.parseFloat(n.Riboflavin_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Niacin_mg)) {
-                        d.add(new FloatField("Niacin", Float.parseFloat(n.Niacin_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Panto_Acid_mg)) {
-                        d.add(new FloatField("Panto_acid", Float.parseFloat(n.Panto_Acid_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Vit_B6_mg)) {
-                        d.add(new FloatField("Vit_B6", Float.parseFloat(n.Vit_B6_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Folate_Tot_µg)) {
-                        d.add(new IntField("Folate_Tot", Integer.parseInt(n.Folate_Tot_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Folic_Acid_µg)) {
-                        d.add(new IntField("Folic_acid", Integer.parseInt(n.Folic_Acid_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Food_Folate_µg)) {
-                        d.add(new IntField("Food_Folate", Integer.parseInt(n.Food_Folate_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Folate_DFE_µg)) {
-                        d.add(new IntField("Folate_DFE", Integer.parseInt(n.Folate_DFE_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Choline_Tot_mg)) {
-                        d.add(new FloatField("Choline_Tot", Float.parseFloat(n.Choline_Tot_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Vit_B12_µg)) {
-                        d.add(new FloatField("Vit_B12", Float.parseFloat(n.Vit_B12_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Vit_A_IU)) {
-                        d.add(new IntField("Vit_A_IU", Integer.parseInt(n.Vit_A_IU), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Vit_A_RAE)) {
-                        d.add(new IntField("Vit_A_RAE", Integer.parseInt(n.Vit_A_RAE), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Retinol_µg)) {
-                        d.add(new IntField("Retinol", Integer.parseInt(n.Retinol_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Alpha_Carot_µg)) {
-                        d.add(new IntField("Alpha_Carot", Integer.parseInt(n.Alpha_Carot_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Beta_Carot_µg)) {
-                        d.add(new IntField("Beta_Carot", Integer.parseInt(n.Beta_Carot_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Beta_Crypt_µg)) {
-                        d.add(new IntField("Beta_Crypt", Integer.parseInt(n.Beta_Crypt_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Lycopene_µg)) {
-                        d.add(new IntField("Lycopene", Integer.parseInt(n.Lycopene_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.LutZea_µg)) {
-                        d.add(new IntField("Lut+Zea", Integer.parseInt(n.LutZea_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Vit_E_mg)) {
-                        d.add(new FloatField("Vit_E", Float.parseFloat(n.Vit_E_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Vit_D_µg)) {
-                        d.add(new FloatField("Vit_D_mcg", Float.parseFloat(n.Vit_D_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Vit_D_IU)) {
-                        d.add(new IntField("Vit_D_IU", Integer.parseInt(n.Vit_D_IU), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Vit_K_µg)) {
-                        d.add(new FloatField("Vit_K", Float.parseFloat(n.Vit_K_µg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.FA_Sat_g)) {
-                        d.add(new FloatField("FA_Sat", Float.parseFloat(n.FA_Sat_g), Field.Store.YES));
-                    }
-                    if (!"".equals(n.FA_Mono_g)) {
-                        d.add(new FloatField("FA_Mono", Float.parseFloat(n.FA_Mono_g), Field.Store.YES));
-                    }
-                    if (!"".equals(n.FA_Poly_g)) {
-                        d.add(new FloatField("FA_Poly", Float.parseFloat(n.FA_Poly_g), Field.Store.YES));
-                    }
-                    if (!"".equals(n.Cholestrl_mg)) {
-                        d.add(new IntField("Cholestrl", Integer.parseInt(n.Cholestrl_mg), Field.Store.YES));
-                    }
-                    if (!"".equals(n.GmWt_1)) {
-                        d.add(new IntField("GmWt_1", Integer.parseInt(n.GmWt_1), Field.Store.YES));
-                    }
-                    if (!"".equals(n.GmWt_Desc1)) {
-                        d.add(new StringField("GmWt_Desc1", n.GmWt_Desc1, Field.Store.YES));
-                    }
-                    if (!"".equals(n.GmWt_2)) {
-                        d.add(new FloatField("GmWt_2", Float.parseFloat(n.GmWt_2), Field.Store.YES));
-                    }
-                    if (!"".equals(n.GmWt_Desc2)) {
-                        d.add(new StringField("GmWt_Desc2", n.GmWt_Desc2, Field.Store.YES));
-                    }
-                    if (!"".equals(n.Refuse_Pct)) {
-                        d.add(new IntField("Refuse_Pct", Integer.parseInt(n.Refuse_Pct), Field.Store.YES));
-                    }
+            if (mejorMatch != null) {
+                for (IndexableField i : mejorMatch.getFields()) {
+                    d.add(i);
                 }
-
+                System.out.println(String.format("Relacioné %s con %s", map.get(idProductoComent).title, mejorMatch.getField("Shrt_Desc").stringValue()));
+                contadorDeSimilitudes++;
             }
 
             iwriter.addDocument(d);

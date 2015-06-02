@@ -34,17 +34,16 @@ import org.apache.lucene.util.Version;
  */
 public class Search {
 
-    String dirIndexES="data/";
-    String dirIndexNONES="data/";
+    String dirIndexES = "data/";
+    String dirIndexNONES = "data/";
 
     ArrayList<List> listaInfo = new ArrayList();
-    
 
     public Search(String directorioIndexES, String directorioIndexNONES) {
         this.dirIndexES = directorioIndexES;
         this.dirIndexNONES = directorioIndexNONES;
     }
-    
+
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException {
         Scanner s = new Scanner(System.in);
         System.out.println("Ingrese términos de búsqueda:");
@@ -55,13 +54,14 @@ public class Search {
 
     private Search() {
     }
+
     public void buscarContenido(String busqueda) throws IOException, ParseException {
         StandardAnalyzer analyzer = new StandardAnalyzer();
 
         //File indexDirES = new File(dirIndexES);
         Path indexDirES = Paths.get(dirIndexES);
         Directory indexES = FSDirectory.open(indexDirES);
-        
+
         Path indexDirNONES = Paths.get(dirIndexNONES);
         Directory indexNONES = FSDirectory.open(indexDirNONES);
 
@@ -70,15 +70,12 @@ public class Search {
 
 //        Query q = new QueryParser("amazonTitle", analyzer).parse(querystr);
         //Query qNONES = new QueryParser(Version.LUCENE_43, "contenido", analyzer).parse(querystr);
-
-        
-        String[] fields = {"amazonTitle","text","summary"};
+        String[] fields = {"amazonTitle", "text", "summary"};
         //QueryParser parser = new QueryParser(field, analyzerWrapper);
-        Query q = new MultiFieldQueryParser(fields , analyzer).parse(querystr);
-        
-        
+        Query q = new MultiFieldQueryParser(fields, analyzer).parse(querystr);
+
         // 3. Search
-        int hitsPerPage = 2048;
+        int hitsPerPage = 10;
         IndexReader reader = DirectoryReader.open(indexES);
         IndexSearcher searcher = new IndexSearcher(reader);
 
@@ -92,13 +89,14 @@ public class Search {
         searcherNONES.search(q, collectorNONES);
 
         ScoreDoc[] hits = collector.topDocs().scoreDocs;
-        // ScoreDoc[] hitsNONES = collectorNONES.topDocs().scoreDocs;
 
+        // ScoreDoc[] hitsNONES = collectorNONES.topDocs().scoreDocs;
         // 4. Display results
         for (int i = 0; i < hits.length; ++i) {
             int docId = hits[i].doc;
             Document d = searcher.doc(docId);
             System.out.println(d.get("amazonTitle"));
+            System.out.println(hits[i].score);
         }
 
         /*System.out.println("No ES Found " + hitsNONES.length + " hits.");
@@ -107,10 +105,64 @@ public class Search {
          Document d = searcherNONES.doc(docId);
          System.out.println((i + 1) + ". " + d.get("es") + "\t" + d.get("contenido"));
          }*/
-        
         reader.close();
         readerNONES.close();
 
     }
-    
+
+    public Document buscarNutriInfos(String busqueda) throws IOException, ParseException {
+        StandardAnalyzer analyzer = new StandardAnalyzer();
+
+        //File indexDirES = new File(dirIndexES);
+        Path indexDirES = Paths.get("dataSR27/");
+        Directory indexES = FSDirectory.open(indexDirES);
+
+        Path indexDirNONES = Paths.get("dataSR27/");
+        Directory indexNONES = FSDirectory.open(indexDirNONES);
+
+        // 2. Query
+        String querystr = busqueda;
+
+//        Query q = new QueryParser("amazonTitle", analyzer).parse(querystr);
+        //Query qNONES = new QueryParser(Version.LUCENE_43, "contenido", analyzer).parse(querystr);
+        String[] fields = {"Shrt_Desc"};
+        //QueryParser parser = new QueryParser(field, analyzerWrapper);
+        Query q = new MultiFieldQueryParser(fields, analyzer).parse(querystr);
+
+        // 3. Search
+        int hitsPerPage = 20;
+        IndexReader reader = DirectoryReader.open(indexES);
+        IndexSearcher searcher = new IndexSearcher(reader);
+
+        IndexReader readerNONES = DirectoryReader.open(indexNONES);
+        IndexSearcher searcherNONES = new IndexSearcher(readerNONES);
+
+        TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
+        TopScoreDocCollector collectorNONES = TopScoreDocCollector.create(hitsPerPage);
+
+        searcher.search(q, collector);
+        searcherNONES.search(q, collectorNONES);
+
+        ScoreDoc[] hits = collector.topDocs().scoreDocs;
+
+        // ScoreDoc[] hitsNONES = collectorNONES.topDocs().scoreDocs;
+        if (hits.length == 0) {
+            return null;
+        }
+        if (hits[0].score < 1) {
+            return null;
+        }
+        int docId = hits[0].doc;
+        Document d = searcher.doc(docId);
+        /*System.out.println("No ES Found " + hitsNONES.length + " hits.");
+         for(int i=0;i<hitsNONES.length;++i) {
+         int docId = hitsNONES[i].doc;
+         Document d = searcherNONES.doc(docId);
+         System.out.println((i + 1) + ". " + d.get("es") + "\t" + d.get("contenido"));
+         }*/
+        reader.close();
+        readerNONES.close();
+        return d;
+    }
+
 }
