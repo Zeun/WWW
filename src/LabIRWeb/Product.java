@@ -21,8 +21,9 @@ public class Product {
     public String review_positiveVotes;
     public String review_totalVotes;
     public int cantidadReviews;
+    public String emotion;
                     
-    public Product(String a, String b, String c, String d, String e, String f, int g){
+    public Product(String a, String b, String c, String d, String e, String f, int g, String h){
         title = a;
         price = b;
         review_summ = c;
@@ -31,7 +32,7 @@ public class Product {
         review_positiveVotes = f.split("/")[0];
         review_totalVotes = f.split("/")[1];
         cantidadReviews = g;
-
+        emotion = h;
     }
    
     

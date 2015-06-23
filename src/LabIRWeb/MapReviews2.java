@@ -5,6 +5,7 @@
  */
 package LabIRWeb;
 
+import cc.mallet.classify.Classifier;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,6 +40,8 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.flexible.standard.QueryParserUtil;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import Aux.AuxClassifier;
+import org.apache.lucene.document.DoubleField;
 
 /**
  *
@@ -46,10 +49,12 @@ import org.apache.lucene.store.FSDirectory;
  */
 public class MapReviews2 {
 
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ClassNotFoundException {
         File file = new File("Gourmet_Foods.txt");
         Scanner sc = new Scanner(file);
         HashMap<String, Product> map = new HashMap<>();
+        AuxClassifier aux = new AuxClassifier();
+        Classifier clasificador = aux.loadClassifier();
 
         while (sc.hasNextLine()) {
             String a = sc.nextLine();
@@ -92,15 +97,16 @@ public class MapReviews2 {
                 String score_tmp = map.get(pid).review_score + "*^*" + score;
                 String positive_tmp = map.get(pid).review_positiveVotes + "*^*" + hness.split("/")[0];
                 String total_tmp = map.get(pid).review_totalVotes + "*^*" + hness.split("/")[1];
-
+                String emotion_tmp = map.get(pid).emotion + "*^*" + aux.printLabelings(clasificador, text);
                 String hness_tmp = positive_tmp + "/" + total_tmp;
                 map.remove(pid);
-                Product p = new Product(title, price, summ_tmp, text_tmp, score_tmp, hness_tmp, cantidadReviews_tmp);
+                Product p = new Product(title, price, summ_tmp, text_tmp, score_tmp, hness_tmp, cantidadReviews_tmp, emotion_tmp);
                 map.put(pid, p);
 
             } else { //no existe el producto en el diccionario
                 if (!title.isEmpty()) {
-                    Product p = new Product(title, price, summ, text, score, hness, 0);
+                    String emotion = aux.printLabelings(clasificador, text);
+                    Product p = new Product(title, price, summ, text, score, hness, 1, emotion);
                     map.put(pid, p);
                 }
             }
@@ -419,6 +425,7 @@ public class MapReviews2 {
         int contadorDeSimilitudes = 0;
         System.out.println(String.format("Proceso iniciado, se hicieron %d matches de %d productos", contadorDeSimilitudes, prodAAnalizar));
         Search s = new Search("dataSR27/", "dataSR27/");
+        AuxClassifier a = new AuxClassifier();
         for (String idProductoComent : map.keySet()) {
             float percent = ((float) prodAnalizados) / prodAAnalizar;
             System.out.println(String.format("[%d] Analizando producto %d de %d (%.2f %%)", System.currentTimeMillis(), prodAnalizados++, prodAAnalizar, percent));
@@ -438,6 +445,13 @@ public class MapReviews2 {
                 d.add(new TextField("score", map.get(idProductoComent).review_score, Field.Store.YES));
                 d.add(new TextField("positive", map.get(idProductoComent).review_positiveVotes, Field.Store.YES));
                 d.add(new TextField("total", map.get(idProductoComent).review_totalVotes, Field.Store.YES));
+                d.add(new TextField("emotion", map.get(idProductoComent).emotion, Field.Store.YES));
+                double score = aux.getScore(map.get(idProductoComent).review_summ, map.get(idProductoComent).review_score, map.get(idProductoComent).review_positiveVotes, map.get(idProductoComent).review_totalVotes, map.get(idProductoComent).emotion);
+                d.add(new DoubleField("ranking", score, Field.Store.YES));
+
+                
+                
+                
             if (mejorMatch != null) {
                 for (IndexableField i : mejorMatch.getFields()) {
                     d.add(i);

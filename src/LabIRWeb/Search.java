@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -95,17 +96,23 @@ public class Search {
         System.out.println("................................................................");
         System.out.println("Iniciando Búsqueda: ");
         System.out.println("................................................................");
+
+        ArrayList<Resultado> resultados = new ArrayList<>();
         for (int i = 0; i < hits.length; ++i) {
             int docId = hits[i].doc;
             Document d = searcher.doc(docId);
-            System.out.println(d.get("amazonTitle"));
-            System.out.println(hits[i].score);
-            System.out.println("**");
-            System.out.println(d.get("summary"));
-            System.out.println("**");
-            System.out.println(d.get("text"));            
-            System.out.println("--------------------------------------------------------------");
+            resultados.add(new Resultado(d));
+//            System.out.println(d.get("amazonTitle"));
+//            System.out.println(hits[i].score);
+//            System.out.println("**");
+//            System.out.println(d.get("summary"));
+//            System.out.println("**");
+//            System.out.println(d.get("text"));            
+//            System.out.println("--------------------------------------------------------------");
         }
+        
+        Collections.sort(resultados);
+        
 
         /*System.out.println("No ES Found " + hitsNONES.length + " hits.");
          for(int i=0;i<hitsNONES.length;++i) {
