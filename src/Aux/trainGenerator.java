@@ -22,14 +22,14 @@ public class trainGenerator {
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
         File file = new File("Gourmet_Foods.txt");
-        BufferedWriter out = new BufferedWriter(new FileWriter("trainingData.txt"));
+        BufferedWriter out = new BufferedWriter(new FileWriter("trainingData.txt", true));
         Scanner sc = new Scanner(file);
         Scanner sc2 = new Scanner(System.in);
         HashMap<String, Product> map = new HashMap<>();
         String pid, title, price, uid, pname, hness, score, time, summ, text;
         String line;
         int qtyOfTrainingSet = 50;
-        int startAt = 0;
+        int startAt = 450;
         int currentReview = 0;
         int itemsWritten = 0;
         int seleccion;
@@ -87,6 +87,7 @@ public class trainGenerator {
             a = sc.nextLine();
             System.out.println("============================================");
             System.out.println(summ);
+            System.out.println(score);
             System.out.println(text);
             System.out.print("("+ itemsWritten + " de " +qtyOfTrainingSet +") 1 positivo, 2 neutro, 3 negativo?");
             seleccion = sc2.nextInt();

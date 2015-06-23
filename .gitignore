@@ -27,3 +27,7 @@ trainingData.txt
 *.xml
 
 *.properties
+
+*.properties
+
+nbproject/private/private.xml
