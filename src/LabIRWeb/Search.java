@@ -75,7 +75,7 @@ public class Search {
         Query q = new MultiFieldQueryParser(fields, analyzer).parse(querystr);
 
         // 3. Search
-        int hitsPerPage = 10;
+        int hitsPerPage = 20;
         IndexReader reader = DirectoryReader.open(indexES);
         IndexSearcher searcher = new IndexSearcher(reader);
 
@@ -92,11 +92,19 @@ public class Search {
 
         // ScoreDoc[] hitsNONES = collectorNONES.topDocs().scoreDocs;
         // 4. Display results
+        System.out.println("................................................................");
+        System.out.println("Iniciando Búsqueda: ");
+        System.out.println("................................................................");
         for (int i = 0; i < hits.length; ++i) {
             int docId = hits[i].doc;
             Document d = searcher.doc(docId);
             System.out.println(d.get("amazonTitle"));
             System.out.println(hits[i].score);
+            System.out.println("**");
+            System.out.println(d.get("summary"));
+            System.out.println("**");
+            System.out.println(d.get("text"));            
+            System.out.println("--------------------------------------------------------------");
         }
 
         /*System.out.println("No ES Found " + hitsNONES.length + " hits.");

@@ -22,7 +22,7 @@ public class trainGenerator {
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
         File file = new File("Gourmet_Foods.txt");
-        BufferedWriter out = new BufferedWriter(new FileWriter("trainingData.txt"));
+        BufferedWriter out = new BufferedWriter(new FileWriter("trainingData.txt", true));
         Scanner sc = new Scanner(file);
         Scanner sc2 = new Scanner(System.in);
         HashMap<String, Product> map = new HashMap<>();
@@ -33,6 +33,9 @@ public class trainGenerator {
         int currentReview = 0;
         int itemsWritten = 0;
         int seleccion;
+        int contadorPositivos = 0;
+        int contadorNeutros = 0;
+        int contadorNegativos = 0;
         String clase;
         iteracionPorReviews:
         while (itemsWritten < qtyOfTrainingSet && sc.hasNextLine()) {
@@ -92,12 +95,15 @@ public class trainGenerator {
             switch(seleccion){
                 case 1:
                     clase = "positivo";
+                    contadorPositivos++;
                     break;
                 case 2:
                     clase = "neutro";
+                    contadorNeutros++;
                     break;
                 case 3:
                     clase = "negativo";
+                    contadorNegativos++;
                     break;
                 default:
                     currentReview++;
@@ -109,6 +115,10 @@ public class trainGenerator {
             currentReview++;
         }
         out.close();
-
+        
+        System.out.println("****************************************");
+        System.out.println("Contador Positivos: " + contadorPositivos);
+        System.out.println("Contador Neutros: " + contadorNeutros);
+        System.out.println("Contador Negativos: " + contadorNegativos);
     }
 }

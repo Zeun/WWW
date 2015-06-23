@@ -273,9 +273,10 @@ public class MapReviews {
                 //agregamos las reviews
                 d.add(new TextField("summary", map.get(idProductoComent).review_summ, Field.Store.YES));
                 d.add(new TextField("text", map.get(idProductoComent).review_text, Field.Store.YES));
-                d.add(new TextField("score", map.get(idProductoComent).review_score, Field.Store.YES));
-                d.add(new TextField("positive", map.get(idProductoComent).review_positiveVotes, Field.Store.YES));
-                d.add(new TextField("total", map.get(idProductoComent).review_totalVotes, Field.Store.YES));
+                d.add(new StringField("score", map.get(idProductoComent).review_score, Field.Store.YES));
+                d.add(new StringField("positive", map.get(idProductoComent).review_positiveVotes, Field.Store.YES));
+                d.add(new StringField("total", map.get(idProductoComent).review_totalVotes, Field.Store.YES));
+                d.add(new IntField("cantidad_reviews", map.get(idProductoComent).cantidadReviews, Field.Store.YES));
                 /*
                 int cantidadDeReviews = 0;
                 for (Review r : map.get(idProductoComent).reviews) {
