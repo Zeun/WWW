@@ -29,7 +29,7 @@ public class trainGenerator {
         String pid, title, price, uid, pname, hness, score, time, summ, text;
         String line;
         int qtyOfTrainingSet = 50;
-        int startAt = 0;
+        int startAt = 650;
         int currentReview = 0;
         int itemsWritten = 0;
         int seleccion;
@@ -82,8 +82,10 @@ public class trainGenerator {
             a = a.substring(a.indexOf(": ") + 2);
             text = a;
             a = sc.nextLine();
+            System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
             System.out.println("============================================");
             System.out.println(summ);
+            System.out.println(score + "estrellas");
             System.out.println(text);
             System.out.print("("+ itemsWritten + " de " +qtyOfTrainingSet +") 1 positivo, 2 neutro, 3 negativo?");
             seleccion = sc2.nextInt();
