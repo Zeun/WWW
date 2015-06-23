@@ -113,6 +113,18 @@ public class Search {
         
         Collections.sort(resultados);
         
+        System.out.println("Mostrando resultados");
+        for(Resultado r: resultados){
+            System.out.println(r.d.get("amazonTitle"));
+            System.out.println("**");
+            System.out.println(r.d.get("summary"));
+            System.out.println("**");
+            System.out.println(String.format("Ranking %s ", r.d.get("ranking")));
+//            System.out.println(r.d.get("text"));            
+            System.out.println("--------------------------------------------------------------");
+        }
+        
+        
 
         /*System.out.println("No ES Found " + hitsNONES.length + " hits.");
          for(int i=0;i<hitsNONES.length;++i) {

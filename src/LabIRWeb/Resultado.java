@@ -23,7 +23,7 @@ public class Resultado implements Comparable<Resultado>{
     public int compareTo(Resultado o) {
         double estePuntaje = new Double(d.get("ranking"));
         double elOtroPuntaje = new Double(o.d.get("ranking"));
-        if (estePuntaje > elOtroPuntaje)
+        if (estePuntaje < elOtroPuntaje)
             return 1;
         else if (elOtroPuntaje == estePuntaje)
             return 0;

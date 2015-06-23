@@ -82,11 +82,11 @@ public class AuxClassifier {
     
 
     public double getScore(String review_summ, String review_score, String review_positiveVotes, String review_totalVotes, String emotion) {
-        String[] summaries = review_summ.split(Pattern.quote("^*^"));
-        String[] scores = review_score.split(Pattern.quote("^*^"));
-        String[] positiveVotes = review_positiveVotes.split(Pattern.quote("^*^"));
-        String[] totalVotes = review_totalVotes.split(Pattern.quote("^*^"));
-        String[] emotions = emotion.split(Pattern.quote("^*^"));
+        String[] summaries = review_summ.split(Pattern.quote("*^*"));
+        String[] scores = review_score.split(Pattern.quote("*^*"));
+        String[] positiveVotes = review_positiveVotes.split(Pattern.quote("*^*"));
+        String[] totalVotes = review_totalVotes.split(Pattern.quote("*^*"));
+        String[] emotions = emotion.split(Pattern.quote("*^*"));
         
         int m = summaries.length;
         int totalTotalVotes = 0;
@@ -96,11 +96,24 @@ public class AuxClassifier {
         }
         
         double ranking = 0;
+        Double P,n,N;
         for(int i = 0; i<m; i++){
             String[] emotions_separado = emotions[i].split(Pattern.quote(";"));
-            Double P = new Double(emotions_separado[0]);
-            Double n = new Double(emotions_separado[1]);
-            Double N = new Double(emotions_separado[2]);
+            if(emotions_separado[0].equals("null")){
+                P = 0.0;
+            }else{
+                P = new Double(emotions_separado[0]);
+            }
+            if(emotions_separado[1].equals("null")){
+                n = 0.0;
+            }else{
+                n = new Double(emotions_separado[1]);
+            }
+            if(emotions_separado[2].equals("null")){
+                N = 0.0;
+            }else{
+                N = new Double(emotions_separado[2]);
+            }
             int viPlus = Integer.parseInt(positiveVotes[i]) + 1;
             double ponderedStars = ponderStars(P, n, N, viPlus);
             ranking += ((P + 1 - N + n/2)/2)*(viPlus/totalTotalVotes)+ponderedStars;
